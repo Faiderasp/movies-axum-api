@@ -48,7 +48,12 @@ impl MovieRepository for CsvMovieRepository {
         Ok(self.movies.read().await.clone())
     }
 
-    async fn find_paginated(&self, limit: usize, offset: usize, filter: &MovieFilter) -> Vec<Movie> {
+    async fn find_paginated(
+        &self,
+        limit: usize,
+        offset: usize,
+        filter: &MovieFilter,
+    ) -> Vec<Movie> {
         self.movies
             .read()
             .await

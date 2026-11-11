@@ -684,7 +684,7 @@ fn assemble_movie(
     }
 }
 
-fn parse_genre(name: &str) -> Option<Genre> {
+pub(crate) fn parse_genre(name: &str) -> Option<Genre> {
     match name {
         "Action" => Some(Genre::Action),
         "Adventure" => Some(Genre::Adventure),
@@ -718,7 +718,7 @@ fn parse_status(raw: &str) -> MovieStatus {
     }
 }
 
-fn genre_to_str(genre: Genre) -> &'static str {
+pub(crate) fn genre_to_str(genre: Genre) -> &'static str {
     match genre {
         Genre::Action => "Action",
         Genre::Adventure => "Adventure",

@@ -15,7 +15,8 @@ pub struct MovieFilter {
 #[async_trait]
 pub trait MovieRepository: Send + Sync {
     async fn find_all(&self) -> Result<Vec<Movie>, MovieError>;
-    async fn find_paginated(&self, limit: usize, offset: usize, filter: &MovieFilter) -> Vec<Movie>;
+    async fn find_paginated(&self, limit: usize, offset: usize, filter: &MovieFilter)
+    -> Vec<Movie>;
     async fn find_by_id(&self, id: u32) -> Result<Option<Movie>, MovieError>;
     async fn create(&self, movie: Movie) -> Result<Movie, MovieError>;
     async fn update(&self, id: u32, update: MovieUpdate) -> Result<Movie, MovieError>;
