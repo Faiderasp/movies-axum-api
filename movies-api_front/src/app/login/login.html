@@ -1,0 +1,28 @@
+<div class="flex min-h-screen w-screen justify-center items-center bg-gray-900 bg-opacity-95" style="background-image: url('https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=2525&auto=format&fit=crop'); background-size: cover; background-position: center; background-blend-mode: overlay;">
+    <div class="flex flex-col p-10 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl w-[90%] max-w-[400px] transition-all hover:shadow-[0_0_40px_rgba(239,68,68,0.3)]">
+        <h3 class="text-center mb-8 text-3xl font-bold text-white tracking-wider">Cinematic <span class="text-red-500">Login</span></h3>
+        
+        <div *ngIf="errorMessage" class="mb-4 p-3 rounded-lg bg-red-500/20 border border-red-500/50 text-red-200 text-sm text-center">
+            {{ errorMessage }}
+        </div>
+
+        <div class="mb-5 relative">
+            <input type="text" placeholder="Usuario" [(ngModel)]="username" 
+                class="p-4 w-full rounded-xl bg-black/40 text-white border border-gray-600 focus:border-red-500 focus:ring-2 focus:ring-red-500/50 outline-none transition-all placeholder-gray-400" />
+        </div>
+        
+        <div class="mb-8 relative">
+            <input type="password" placeholder="Contraseña" [(ngModel)]="password" 
+                class="p-4 w-full rounded-xl bg-black/40 text-white border border-gray-600 focus:border-red-500 focus:ring-2 focus:ring-red-500/50 outline-none transition-all placeholder-gray-400" />
+        </div>
+        
+        <button class="w-full p-4 rounded-xl bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500 text-white font-bold text-lg cursor-pointer transform transition-all hover:-translate-y-1 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" 
+                (click)="login()" [disabled]="isLoading">
+            {{ isLoading ? 'Iniciando...' : 'Entrar' }}
+        </button>
+
+        <p class="text-center mt-6 text-gray-300">
+            Panel administrativo
+        </p>
+    </div>
+</div>

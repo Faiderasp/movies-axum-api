@@ -1,0 +1,178 @@
+<div class="page-wrapper">
+    <!-- Navbar -->
+    <nav class="navbar">
+        <h1 class="nav-brand"><span class="brand-accent">Movies</span>App</h1>
+        <div class="nav-actions">
+            <button *ngIf="!isLoggedIn" (click)="goToLogin()" class="btn btn-secondary">
+                Panel Admin
+            </button>
+            <button *ngIf="isLoggedIn" (click)="logout()" class="btn btn-danger">
+                Cerrar Sesión
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-header">
+            <h2 class="page-title">Películas Destacadas</h2>
+            <p class="page-subtitle">Explora nuestra colección de títulos increíbles.</p>
+        </div>
+
+        <!-- Loading State -->
+        <div *ngIf="isLoading" class="loading-state">
+            <div class="spinner"></div>
+            <p class="loading-text">Cargando películas...</p>
+        </div>
+
+        <!-- Error State -->
+        <div *ngIf="error && !isLoading" class="error-state">
+            <p class="error-title">Error de conexión</p>
+            <p class="error-message">{{ error }}</p>
+            <button (click)="fetchMovies()" class="btn btn-danger">Reintentar</button>
+        </div>
+
+        <!-- Movies Grid -->
+        <div *ngIf="!isLoading && movies.length > 0" class="movies-grid">
+            <div *ngFor="let movie of movies"
+                class="movie-card"
+                (click)="openMovieDetail(movie)"
+                role="button"
+                tabindex="0"
+                (keydown.enter)="openMovieDetail(movie)"
+                [attr.aria-label]="'Ver detalles de ' + movie.title">
+
+                <!-- Poster -->
+                <div class="card-poster">
+                    <img
+                        [src]="movie.posterUrl || getPosterFallback(movie)"
+                        [alt]="movie.title"
+                        class="poster-img"
+                        (error)="$any($event.target).src = getPosterFallback(movie)"
+                    />
+                    <div class="poster-overlay"></div>
+                </div>
+
+                <!-- Rating badge -->
+                <div *ngIf="movie.vote_average && movie.vote_average > 0" class="rating-badge">
+                    ★ {{ movie.vote_average | number:'1.1-1' }}
+                </div>
+
+                <!-- "More info" hint icon -->
+                <div class="more-info-hint">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </div>
+
+                <!-- Info Overlay -->
+                <div class="card-info">
+                    <span class="genre-badge">{{ movie.genre || 'Desconocido' }}</span>
+                    <h3 class="card-title">{{ movie.title }}</h3>
+                    <p class="card-meta">
+                        <span>{{ movie.year || 'N/A' }}</span>
+                        <span *ngIf="movie.runtime" class="meta-dot">• {{ movie.runtime }} min</span>
+                    </p>
+                    <p *ngIf="movie.director" class="card-director">Dir: <span>{{ movie.director }}</span></p>
+                    <p class="card-description">{{ movie.description || 'Sin descripción disponible.' }}</p>
+                    <span class="card-cta">Ver más →</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="!isLoading && movies.length === 0 && !error" class="empty-state">
+            No hay películas disponibles en este momento.
+        </div>
+
+        <!-- Load More Button -->
+        <div *ngIf="!isLoading && hasMore && movies.length > 0" class="load-more-wrapper">
+            <button (click)="loadMore()" [disabled]="isLoadingMore" class="btn btn-load-more">
+                <span *ngIf="!isLoadingMore">Cargar más películas</span>
+                <span *ngIf="isLoadingMore" class="loading-btn">
+                    <span class="btn-spinner"></span>
+                    Cargando...
+                </span>
+            </button>
+        </div>
+
+        <!-- All loaded indicator -->
+        <div *ngIf="!isLoading && !hasMore && movies.length > 0" class="all-loaded">
+            Se muestran todas las {{ movies.length }} películas disponibles.
+        </div>
+    </main>
+</div>
+
+<!-- =================== MOVIE DETAIL MODAL =================== -->
+<div class="modal-backdrop" [class.modal-open]="isModalVisible" (click)="closeModal()">
+    <div class="modal-container" (click)="$event.stopPropagation()" *ngIf="selectedMovie" role="dialog" aria-modal="true">
+
+        <!-- Close button -->
+        <button class="modal-close" (click)="closeModal()" aria-label="Cerrar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+
+        <!-- Loading overlay inside modal -->
+        <div *ngIf="isModalLoading" class="modal-loading">
+            <div class="spinner"></div>
+        </div>
+
+        <div class="modal-inner">
+            <!-- Poster / Hero section -->
+            <div class="modal-poster-col">
+                <div class="modal-poster-wrapper">
+                    <img
+                        [src]="selectedMovie.posterUrl || getPosterFallback(selectedMovie)"
+                        [alt]="selectedMovie.title"
+                        class="modal-poster-img"
+                        (error)="$any($event.target).src = getPosterFallback(selectedMovie)"
+                    />
+                    <!-- Rating overlay on poster -->
+                    <div *ngIf="selectedMovie.vote_average && selectedMovie.vote_average > 0" class="modal-rating-ring">
+                        <span class="modal-rating-value">{{ selectedMovie.vote_average | number:'1.1-1' }}</span>
+                        <span class="modal-rating-label">Puntuación</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info section -->
+            <div class="modal-info-col">
+                <div class="modal-genre-row">
+                    <span class="genre-badge">{{ selectedMovie.genre || 'Desconocido' }}</span>
+                    <span *ngIf="selectedMovie.year" class="modal-year">{{ selectedMovie.year }}</span>
+                </div>
+
+                <h2 class="modal-title">{{ selectedMovie.title }}</h2>
+
+                <!-- Stats grid -->
+                <div class="modal-stats">
+                    <div *ngIf="selectedMovie.runtime" class="stat-item">
+                        <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        <div>
+                            <p class="stat-label">Duración</p>
+                            <p class="stat-value">{{ selectedMovie.runtime }} min</p>
+                        </div>
+                    </div>
+                    <div *ngIf="selectedMovie.director" class="stat-item">
+                        <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <div>
+                            <p class="stat-label">Director</p>
+                            <p class="stat-value">{{ selectedMovie.director }}</p>
+                        </div>
+                    </div>
+                    <div *ngIf="selectedMovie.budget" class="stat-item">
+                        <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        <div>
+                            <p class="stat-label">Presupuesto</p>
+                            <p class="stat-value">{{ formatBudget(selectedMovie.budget) }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="modal-description-section">
+                    <h4 class="modal-section-label">Sinopsis</h4>
+                    <p class="modal-description">{{ selectedMovie.description || 'Sin descripción disponible.' }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
